@@ -1,0 +1,36 @@
+name: "Post release"
+on:
+  release:
+    types:
+      - published
+
+env:
+  GO_VERSION: '1.26'
+
+permissions:
+  contents: read
+
+jobs:
+  update-gha-assets:
+    name: "Update readme"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Update GitHub Action config
+        run:  date -u '+%Y-%m-%d_%H:%M:%S' >> README.md
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          base: main
+          token: ${{ secrets.BOT_TOKEN }}
+          push-to-fork: golangci-releaser/fictional-umbrella
+          branch-suffix: timestamp
+          title: "docs: update readme"
+          delete-branch: true
